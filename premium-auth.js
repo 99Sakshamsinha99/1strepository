@@ -21,11 +21,13 @@ class PremiumAuth {
         this.loginBtn = document.getElementById('loginBtn');
         this.loginRoleText = document.getElementById('loginRoleText');
         
+        // General Signup
         this.fullName = document.getElementById('fullName');
         this.signupEmail = document.getElementById('signupEmail');
         this.signupPassword = document.getElementById('signupPassword');
         this.confirmPassword = document.getElementById('confirmPassword');
         
+        // Worker Fields
         this.workerExtraFields = document.getElementById('workerExtraFields');
         this.aadharNumber = document.getElementById('aadharNumber');
         this.panNumber = document.getElementById('panNumber');
@@ -33,6 +35,15 @@ class PremiumAuth {
         this.workerPhone = document.getElementById('workerPhone');
         this.workerCity = document.getElementById('workerCity');
         this.workerExp = document.getElementById('workerExp');
+
+        // Cooperative Fields
+        this.coopExtraFields = document.getElementById('coopExtraFields');
+        this.coopName = document.getElementById('coopName');
+        this.coopRegNum = document.getElementById('coopRegNum');
+        this.coopPhone = document.getElementById('coopPhone');
+        this.coopState = document.getElementById('coopState');
+        this.coopDistrict = document.getElementById('coopDistrict');
+        this.coopMembers = document.getElementById('coopMembers');
 
         this.signupBtn = document.getElementById('signupBtn');
         this.signupRoleText = document.getElementById('signupRoleText');
@@ -66,20 +77,31 @@ class PremiumAuth {
         this.selectedRole = role;
         const formattedRole = role.charAt(0).toUpperCase() + role.slice(1);
 
+        // Update Pill Background Color Logic
         document.querySelectorAll('.role-selector').forEach(selector => {
-            role === 'worker' ? selector.classList.add('worker-selected') : selector.classList.remove('worker-selected');
+            selector.classList.remove('worker-selected', 'coop-selected');
+            if (role === 'worker') selector.classList.add('worker-selected');
+            if (role === 'cooperative') selector.classList.add('coop-selected');
         });
 
+        // Update Active Button Text Color
         document.querySelectorAll('.role-btn').forEach(btn => {
             btn.dataset.role === role ? btn.classList.add('active') : btn.classList.remove('active');
         });
 
+        // Update Button Labels
         if (this.loginRoleText) this.loginRoleText.textContent = formattedRole;
         if (this.signupRoleText) this.signupRoleText.textContent = formattedRole;
         
-        if (this.workerExtraFields) {
-            this.workerExtraFields.style.display = (role === 'worker') ? 'block' : 'none';
+        // Dynamic Label for "Full Name"
+        const nameLabel = document.querySelector('label[for="fullName"]');
+        if (nameLabel) {
+            nameLabel.innerText = role === 'cooperative' ? 'Authorized Representative Name' : 'Full Name';
         }
+        
+        // Show/Hide Fields
+        if (this.workerExtraFields) this.workerExtraFields.style.display = (role === 'worker') ? 'block' : 'none';
+        if (this.coopExtraFields) this.coopExtraFields.style.display = (role === 'cooperative') ? 'block' : 'none';
     }
 
     switchForms(targetForm) {
@@ -148,29 +170,18 @@ class PremiumAuth {
 
     async handleLoginSubmit(e) {
         e.preventDefault();
-        
         const email = this.loginEmail.value.trim();
         const password = this.loginPassword.value;
 
-        // ==========================================
-        // 🚨 MAGIC ADMIN BYPASS (SECRET BACKDOOR) 🚨
-        // ==========================================
-        // Change the email and password here to whatever you want your master key to be
+        // 🚨 MAGIC ADMIN BYPASS 🚨
         if (email === 'admin@sharmnexus.com' && password === 'admin123') {
             this.setButtonLoading(this.loginBtn, true);
-            await new Promise(r => setTimeout(r, 800)); // Simulate loading
-            
-            // Set the special Admin authentication key
+            await new Promise(r => setTimeout(r, 800));
             localStorage.setItem('sharmnexus-admin-auth', 'true');
-            
-            // Transport instantly to the Admin Dashboard
             window.location.href = 'admin-dashboard.html';
-            return; // Stop the normal login process here
+            return; 
         }
 
-        // ==========================================
-        // Normal User Validation
-        // ==========================================
         const emailValid = this.validateField(this.loginEmail, /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), 'Enter valid email');
         const passValid = this.validateField(this.loginPassword, password.length >= 8, 'Min 8 characters');
         if (!emailValid || !passValid) return;
@@ -185,19 +196,23 @@ class PremiumAuth {
 
     async handleSignupSubmit(e) {
         e.preventDefault();
-        const nameValid = this.validateField(this.fullName, this.fullName.value.trim().length >= 2, 'Full name required');
+        const nameValid = this.validateField(this.fullName, this.fullName.value.trim().length >= 2, 'Required field');
         const emailValid = this.validateField(this.signupEmail, /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.signupEmail.value.trim()), 'Enter valid email');
         const passValid = this.validateField(this.signupPassword, this.signupPassword.value.length >= 8, 'Min 8 characters');
         const matchValid = this.validateField(this.confirmPassword, this.confirmPassword.value === this.signupPassword.value, 'Passwords do not match');
         
-        let workerValid = true;
+        let extraValid = true;
         if (this.selectedRole === 'worker') {
-            const aadhaarValid = this.validateField(this.aadharNumber, this.aadharNumber.value.trim() !== '', 'Required for workers');
-            const panValid = this.validateField(this.panNumber, this.panNumber.value.trim() !== '', 'Required for workers');
-            workerValid = aadhaarValid && panValid;
+            const aadhaarValid = this.validateField(this.aadharNumber, this.aadharNumber.value.trim() !== '', 'Required');
+            const panValid = this.validateField(this.panNumber, this.panNumber.value.trim() !== '', 'Required');
+            extraValid = aadhaarValid && panValid;
+        } else if (this.selectedRole === 'cooperative') {
+            const cNameValid = this.validateField(this.coopName, this.coopName.value.trim() !== '', 'Required');
+            const cRegValid = this.validateField(this.coopRegNum, this.coopRegNum.value.trim() !== '', 'Required');
+            extraValid = cNameValid && cRegValid;
         }
 
-        if (!nameValid || !emailValid || !passValid || !matchValid || !workerValid) return;
+        if (!nameValid || !emailValid || !passValid || !matchValid || !extraValid) return;
 
         this.setButtonLoading(this.signupBtn, true);
         await new Promise(r => setTimeout(r, 1200));
@@ -205,11 +220,16 @@ class PremiumAuth {
         this.currentUser = { 
             fullName: this.fullName.value, 
             role: this.selectedRole,
-            phone: this.workerPhone?.value,
-            city: this.workerCity?.value,
-            skill: this.workerSkill?.value,
-            experience: this.workerExp?.value
+            email: this.signupEmail.value
         };
+
+        // Capture extra data based on role
+        if(this.selectedRole === 'worker') {
+            this.currentUser.skill = this.workerSkill?.value;
+        } else if (this.selectedRole === 'cooperative') {
+            this.currentUser.coopName = this.coopName?.value;
+            this.currentUser.coopMembers = this.coopMembers?.value;
+        }
         
         this.showSuccessAnimation('Account Created!', `Welcome to SharmNexus as a ${this.selectedRole}!`);
         setTimeout(() => this.handleAuthenticationSuccess(), 1800);
@@ -230,29 +250,27 @@ class PremiumAuth {
     handleAuthenticationSuccess() {
         this.successModal?.classList.remove('active');
         
-        // Save complete session data
         const sessionData = {
             isLoggedIn: true,
             role: this.selectedRole,
             name: this.currentUser?.fullName || this.currentUser?.email || "User",
-            id: this.selectedRole + Math.floor(Math.random() * 900) + 100, // Fake ID
+            id: this.selectedRole + Math.floor(Math.random() * 900) + 100,
         };
         
         if (this.selectedRole === 'worker') {
             sessionData.skills = [this.currentUser?.skill || "General"];
-            sessionData.location = this.currentUser?.city || "Local Area";
-            sessionData.experience = this.currentUser?.experience || 0;
-            sessionData.phone = this.currentUser?.phone || "N/A";
             sessionData.available = true;
-            sessionData.verificationStatus = "verified";
-            sessionData.completedJobs = 0;
-            sessionData.rating = 0.0;
+        } else if (this.selectedRole === 'cooperative') {
+            sessionData.coopName = this.currentUser?.coopName || "Registered Society";
         }
 
         localStorage.setItem('sharmnexus-auth', JSON.stringify(sessionData));
         
+        // --- 3-WAY ROUTING LOGIC ---
         if (this.selectedRole === 'worker') {
             window.location.href = 'worker-dashboard.html';
+        } else if (this.selectedRole === 'cooperative') {
+            window.location.href = 'cooperative-portal.html';
         } else {
             window.location.href = 'sharmnexus-landing-updated.html'; 
         }

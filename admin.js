@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---------------------------------------------------------
     const loginForm = document.getElementById('admin-login-form');
     if (loginForm) {
-        // If already logged in, redirect to dashboard
         if (localStorage.getItem(ADMIN_AUTH_KEY) === 'true') {
             window.location.href = 'admin-dashboard.html';
         }
@@ -19,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const email = document.getElementById('admin-email').value.trim();
             const errorBox = document.getElementById('admin-error');
             
-            // Note: Password check is ignored for this pure frontend UI prototype
             if (email === SECRET_ADMIN_EMAIL) {
                 localStorage.setItem(ADMIN_AUTH_KEY, 'true');
                 window.location.href = 'admin-dashboard.html';
@@ -27,23 +25,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 errorBox.style.display = 'block';
             }
         });
-        return; // Stop execution on login page
+        return; 
     }
 
     // ---------------------------------------------------------
-    // 2. ADMIN DASHBOARD GUARD (admin-dashboard.html)
+    // 2. ADMIN DASHBOARD GUARD
     // ---------------------------------------------------------
     if (!localStorage.getItem(ADMIN_AUTH_KEY)) {
         alert("🔒 Access Denied. Admin authentication required.");
-        window.location.href = 'admin-login.html';
+        window.location.href = 'premium-auth.html';
         return;
     }
 
-    // Logout
     document.getElementById('admin-logout')?.addEventListener('click', (e) => {
         e.preventDefault();
         localStorage.removeItem(ADMIN_AUTH_KEY);
-        window.location.href = 'admin-login.html';
+        window.location.href = 'premium-auth.html';
     });
 
     // ---------------------------------------------------------
@@ -68,16 +65,106 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ---------------------------------------------------------
-    // 4. MOCK DATA GENERATION & POPULATION
+    // 4. MOCK DATA & REMOVAL LOGIC
     // ---------------------------------------------------------
     
-    // Customers Data
+    // Mutable Data Arrays (Unique entries only)
+    let mockWorkers = [
+        { id: "W1", name: "Raj Kumar", cat: "Plumbing", jobs: 327, verif: "Verified", status: "Online" },
+        { id: "W2", name: "Meena Devi", cat: "Electrical", jobs: 184, verif: "Verified", status: "Offline" },
+        { id: "W3", name: "Sunita Sharma", cat: "Cleaning", jobs: 412, verif: "Verified", status: "Online" },
+        { id: "W4", name: "Amit Singh", cat: "Technician", jobs: 56, verif: "Pending", status: "Offline" },
+        { id: "W5", name: "Vikram Yadav", cat: "Driver", jobs: 210, verif: "Verified", status: "Online" }
+    ];
+
+    let mockCoops = [
+        { id: "C1", name: "Shakti Labour Coop", reg: "REG-9921", members: 248, status: "Active" },
+        { id: "C2", name: "Rajasthan Navnirman", reg: "REG-8834", members: 112, status: "Under Review" },
+        { id: "C3", name: "Jaipur Cleaning Society", reg: "REG-7721", members: 45, status: "Active" }
+    ];
+
+    // Render Functions
+    const renderWorkers = () => {
+        const workTbody = document.getElementById('workers-tbody');
+        if (!workTbody) return;
+        workTbody.innerHTML = mockWorkers.map(w => `
+            <tr>
+                <td><strong>${w.name}</strong></td>
+                <td>${w.cat}</td>
+                <td>${w.jobs}</td>
+                <td><span class="badge ${w.verif === 'Verified' ? 'badge-verified' : 'badge-pending'}">${w.verif}</span></td>
+                <td><span style="color: ${w.status === 'Online' ? 'var(--green)' : 'var(--muted)'}">● ${w.status}</span></td>
+                <td>
+                    <button class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.7rem; color: var(--red); border-color: var(--red);" 
+                    onclick="triggerAdminAction('worker', '${w.id}', '${w.name}')">Remove</button>
+                </td>
+            </tr>
+        `).join('');
+    };
+
+    const renderCoops = () => {
+        const coopsTbody = document.getElementById('coops-tbody');
+        if (!coopsTbody) return;
+        coopsTbody.innerHTML = mockCoops.map(c => `
+            <tr>
+                <td><strong>${c.name}</strong></td>
+                <td>${c.reg}</td>
+                <td>${c.members}</td>
+                <td><span class="badge ${c.status === 'Active' ? 'badge-verified' : 'badge-pending'}">${c.status}</span></td>
+                <td>
+                    <button class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.7rem; color: var(--red); border-color: var(--red);" 
+                    onclick="triggerAdminAction('coop', '${c.id}', '${c.name}')">Suspend/Remove</button>
+                </td>
+            </tr>
+        `).join('');
+    };
+
+    // Removal Modal Logic
+    let pendingAction = null;
+
+    window.triggerAdminAction = (type, id, name) => {
+        pendingAction = { type, id, name };
+        document.getElementById('admin-action-title').innerText = type === 'worker' ? 'Remove Worker' : 'Suspend Cooperative';
+        document.getElementById('admin-action-desc').innerText = `Are you sure you want to remove ${name} from the ShramNexus platform? This action is logged.`;
+        document.getElementById('admin-action-modal').style.display = 'flex';
+    };
+
+    document.getElementById('confirm-action-btn')?.addEventListener('click', () => {
+        if (!pendingAction) return;
+        
+        const reason = document.getElementById('admin-action-reason').value;
+        
+        if (pendingAction.type === 'worker') {
+            mockWorkers = mockWorkers.filter(w => w.id !== pendingAction.id);
+            renderWorkers();
+        } else if (pendingAction.type === 'coop') {
+            mockCoops = mockCoops.filter(c => c.id !== pendingAction.id);
+            renderCoops();
+        }
+
+        document.getElementById('admin-action-modal').style.display = 'none';
+        
+        const toast = document.getElementById('admin-toast');
+        if(toast) {
+            toast.innerText = `${pendingAction.name} has been removed. (Reason: ${reason})`;
+            toast.style.transform = 'translateY(0)';
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.transform = 'translateY(100px)';
+                toast.style.opacity = '0';
+            }, 3000);
+        }
+        
+        pendingAction = null;
+    });
+
+    // ---------------------------------------------------------
+    // 5. OTHER STATIC MOCK DATA (Customers, Bookings, Reviews)
+    // ---------------------------------------------------------
     const mockCustomers = [
         { name: "Priya Sharma", email: "priya.s@example.com", bookings: 12, spent: "₹ 5,400", status: "Active", date: "Jan 12, 2023" },
         { name: "Rahul Verma", email: "rahul.v@example.com", bookings: 4, spent: "₹ 1,800", status: "Active", date: "Mar 05, 2023" },
-        { name: "Anita Desai", email: "anita.d@example.com", bookings: 28, spent: "₹ 14,200", status: "Active", date: "Nov 22, 2022" },
-        { name: "Vikram Singh", email: "vik.singh@example.com", bookings: 0, spent: "₹ 0", status: "Inactive", date: "Oct 10, 2023" },
-        { name: "Neha Gupta", email: "neha.g@example.com", bookings: 7, spent: "₹ 3,150", status: "Active", date: "Aug 18, 2023" }
+        { name: "Anita Desai", email: "anita.d@example.com", bookings: 28, spent: "₹ 14,200", status: "Active", date: "Nov 22, 2022" }
     ];
 
     const custTbody = document.getElementById('customers-tbody');
@@ -94,35 +181,10 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    // Workers Data (Adhering to strict PII redaction rules)
-    const mockWorkers = [
-        { name: "Raj Kumar", cat: "Plumbing", jobs: 327, earn: "₹ 145,200", verif: "Verified", status: "Online" },
-        { name: "Meena Devi", cat: "Electrical", jobs: 184, earn: "₹ 82,400", verif: "Verified", status: "Offline" },
-        { name: "Sunita Sharma", cat: "Cleaning", jobs: 412, earn: "₹ 198,000", verif: "Verified", status: "Online" },
-        { name: "Amit Singh", cat: "Technician", jobs: 56, earn: "₹ 34,500", verif: "Pending", status: "Offline" },
-        { name: "Vikram Yadav", cat: "Driver", jobs: 210, earn: "₹ 95,000", verif: "Verified", status: "Online" }
-    ];
-
-    const workTbody = document.getElementById('workers-tbody');
-    if (workTbody) {
-        workTbody.innerHTML = mockWorkers.map(w => `
-            <tr>
-                <td><strong>${w.name}</strong></td>
-                <td>${w.cat}</td>
-                <td>${w.jobs}</td>
-                <td>${w.earn}</td>
-                <td><span class="badge ${w.verif === 'Verified' ? 'badge-verified' : 'badge-req'}">${w.verif}</span></td>
-                <td><span style="color: ${w.status === 'Online' ? 'var(--green)' : 'var(--muted)'}">● ${w.status}</span></td>
-            </tr>
-        `).join('');
-    }
-
-    // Reviews Data
     const mockReviews = [
         { c: "Priya Sharma", w: "Raj Kumar", s: "Plumbing", r: "★★★★★", rev: "Excellent work, arrived on time.", d: "Today" },
         { c: "Rahul Verma", w: "Meena Devi", s: "Electrical", r: "★★★★☆", rev: "Good job, but a bit expensive.", d: "Yesterday" },
-        { c: "Anita Desai", w: "Sunita Sharma", s: "Cleaning", r: "★★★★★", rev: "Spotless cleaning. Highly recommend.", d: "Oct 12" },
-        { c: "Vikram Singh", w: "Amit Singh", s: "Technician", r: "★★☆☆☆", rev: "Arrived late, couldn't fix the issue.", d: "Oct 10" },
+        { c: "Anita Desai", w: "Sunita Sharma", s: "Cleaning", r: "★★★★★", rev: "Spotless cleaning. Highly recommend.", d: "Oct 12" }
     ];
 
     const revTbody = document.getElementById('reviews-tbody');
@@ -137,13 +199,10 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
-    // Bookings Data
     const mockBookings = [
         { id: "#SNX-992", c: "Priya Sharma", w: "Raj Kumar", s: "Plumbing", d: "Oct 14, 2023", a: "₹ 450", st: "Ongoing", bc: "badge-ongoing" },
         { id: "#SNX-991", c: "Rahul Verma", w: "Sunita Sharma", s: "Cleaning", d: "Oct 14, 2023", a: "₹ 800", st: "Pending", bc: "badge-pending" },
-        { id: "#SNX-990", c: "Anita Desai", w: "Meena Devi", s: "Electrical", d: "Oct 13, 2023", a: "₹ 350", st: "Completed", bc: "badge-success" },
-        { id: "#SNX-989", c: "Neha Gupta", w: "Vikram Yadav", s: "Driver", d: "Oct 12, 2023", a: "₹ 1200", st: "Completed", bc: "badge-success" },
-        { id: "#SNX-988", c: "Vikram Singh", w: "Amit Singh", s: "Technician", d: "Oct 10, 2023", a: "₹ 500", st: "Cancelled", bc: "badge-cancelled" }
+        { id: "#SNX-990", c: "Anita Desai", w: "Meena Devi", s: "Electrical", d: "Oct 13, 2023", a: "₹ 350", st: "Completed", bc: "badge-success" }
     ];
 
     const bookTbody = document.getElementById('bookings-tbody');
@@ -158,8 +217,12 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('');
     }
 
+    // Initialize Active Tables
+    renderWorkers();
+    renderCoops();
+
     // ---------------------------------------------------------
-    // 5. CHART.JS EARNINGS INITIALIZATION
+    // 6. CHART.JS EARNINGS
     // ---------------------------------------------------------
     const ctx = document.getElementById('earningsChart');
     if (ctx) {
@@ -190,23 +253,16 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: { position: 'top', labels: { usePointStyle: true, font: { family: "'DM Sans', sans-serif" } } }
-                },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                    x: { grid: { display: false } }
-                }
+                plugins: { legend: { position: 'top', labels: { usePointStyle: true, font: { family: "'DM Sans', sans-serif" } } } },
+                scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false } } }
             }
         });
 
-        // Filter functionality (Simulated updates)
         document.querySelectorAll('.chart-filters .btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.chart-filters .btn').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 
-                // Simulate data change
                 const multiplier = e.target.dataset.range === '30D' ? 4 : e.target.dataset.range === '6M' ? 24 : e.target.dataset.range === '1Y' ? 48 : 1;
                 earningsChart.data.datasets[0].data = earningsChart.data.datasets[0].data.map(() => Math.floor(Math.random() * 20000 * multiplier) + (10000 * multiplier));
                 earningsChart.data.datasets[1].data = earningsChart.data.datasets[0].data.map(val => val * 4);

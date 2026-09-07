@@ -1,325 +1,197 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Authentication Check
+
+    // --- Authentication Check ---
     const authData = JSON.parse(localStorage.getItem('sharmnexus-auth'));
-    if (!authData || !authData.isLoggedIn || authData.role !== 'worker') {
+    if (!authData || !authData.isLoggedIn || authData.role !== 'cooperative') {
         window.location.href = 'premium-auth.html';
         return;
     }
 
-    // Populate user specific elements
-    document.getElementById('welcome-name').innerText = `Welcome back, ${authData.name.split(' ')[0]}!`;
-    document.getElementById('topbar-avatar').innerText = authData.name.charAt(0).toUpperCase();
-    
-    // Profile Pre-fill
-    document.getElementById('p-name').value = authData.name || '';
-    document.getElementById('p-phone').value = authData.phone || '';
-    document.getElementById('p-skill').value = (authData.skills && authData.skills[0]) || '';
-    document.getElementById('p-exp').value = authData.experience || '';
-    document.getElementById('p-loc').value = authData.location || '';
+    // --- Navigation Logic ---
+    const navLinks = document.querySelectorAll('.nav-link');
+    const views = document.querySelectorAll('.portal-view');
+    const pageTitle = document.getElementById('pageTitle');
+    const pageSubtitle = document.getElementById('pageSubtitle');
 
-    // ========================================================================
-    // 2. LANGUAGE SWITCHING & i18n
-    // ========================================================================
-    const translations = {
-        en: {
-            nav_dash: "🏠 Dashboard", nav_req: "📋 Job Requests", nav_jobs: "🔧 My Jobs",
-            nav_earn: "💰 Earnings", nav_rev: "⭐ Reviews", nav_notif: "🔔 Notifications",
-            nav_prof: "👤 My Profile", nav_verif: "✅ Verification", nav_logout: "🚪 Logout",
-            avail_online: "🟢 Available for Work", avail_offline: "🔴 Not Available"
-        },
-        hi: {
-            nav_dash: "🏠 डैशबोर्ड", nav_req: "📋 कार्य अनुरोध", nav_jobs: "🔧 मेरे कार्य",
-            nav_earn: "💰 कमाई", nav_rev: "⭐ समीक्षाएं", nav_notif: "🔔 सूचनाएं",
-            nav_prof: "👤 मेरी प्रोफ़ाइल", nav_verif: "✅ सत्यापन", nav_logout: "🚪 लॉग आउट",
-            avail_online: "🟢 काम के लिए उपलब्ध", avail_offline: "🔴 उपलब्ध नहीं"
-        },
-        bn: {
-            nav_dash: "🏠 ড্যাশবোর্ড", nav_req: "📋 কাজের অনুরোধ", nav_jobs: "🔧 আমার কাজ",
-            nav_earn: "💰 উপার্জন", nav_rev: "⭐ রিভিউ", nav_notif: "🔔 বিজ্ঞপ্তি",
-            nav_prof: "👤 আমার প্রোফাইল", nav_verif: "✅ যাচাইকরণ", nav_logout: "🚪 লগ আউট",
-            avail_online: "🟢 কাজের জন্য উপলব্ধ", avail_offline: "🔴 উপলব্ধ নয়"
-        },
-        mr: {
-            nav_dash: "🏠 डॅशबोर्ड", nav_req: "📋 नोकरीच्या विनंत्या", nav_jobs: "🔧 माझी कामे",
-            nav_earn: "💰 कमाई", nav_rev: "⭐ पुनरावलोकने", nav_notif: "🔔 सूचना",
-            nav_prof: "👤 माझी प्रोफाइल", nav_verif: "✅ पडताळणी", nav_logout: "🚪 लॉग आउट",
-            avail_online: "🟢 कामासाठी उपलब्ध", avail_offline: "🔴 उपलब्ध नाही"
-        },
-        ta: {
-            nav_dash: "🏠 டாஷ்போர்டு", nav_req: "📋 வேலை கோரிக்கைகள்", nav_jobs: "🔧 எனது வேலைகள்",
-            nav_earn: "💰 வருமானம்", nav_rev: "⭐ விமர்சனங்கள்", nav_notif: "🔔 அறிவிப்புகள்",
-            nav_prof: "👤 எனது சுயவிவரம்", nav_verif: "✅ சரிபார்ப்பு", nav_logout: "🚪 வெளியேறு",
-            avail_online: "🟢 வேலைக்கு தயார்", avail_offline: "🔴 கிடைக்கவில்லை"
-        },
-        te: {
-            nav_dash: "🏠 డాష్‌బోర్డ్", nav_req: "📋 ఉద్యోగ అభ్యర్థనలు", nav_jobs: "🔧 నా పనులు",
-            nav_earn: "💰 ఆదాయం", nav_rev: "⭐ సమీక్షలు", nav_notif: "🔔 నోటిఫికేషన్‌లు",
-            nav_prof: "👤 నా ప్రొఫైల్", nav_verif: "✅ ధృవీకరణ", nav_logout: "🚪 లాగ్ అవుట్",
-            avail_online: "🟢 పనికి అందుబాటులో", avail_offline: "🔴 అందుబాటులో లేదు"
-        }
+    const viewMeta = {
+        'view-dashboard': { t: 'Dashboard', s: 'Digital Infrastructure for Labour Cooperatives' },
+        'view-workers': { t: 'Worker Roster', s: 'Verified cooperative members and their status' },
+        'view-fairwork': { t: 'FairWork Engine', s: 'Algorithmic balancing of work allocation' },
+        'view-contracts': { t: 'Community Contracts', s: 'Large-scale service requests from RWAs' },
+        'view-squads': { t: 'Community Squads', s: 'Verified teams for large community projects' },
+        'view-tools': { t: 'Tool Bank', s: 'Shared equipment managed by the cooperative' },
+        'view-payments': { t: 'Transparent Payments', s: 'Configured earnings distribution logic' },
+        'view-welfare': { t: 'Welfare Fund', s: 'Cooperative surplus and member benefits' },
+        'view-assembly': { t: 'Member Assembly', s: 'Democratic proposals and voting' }
     };
 
-    const LANG_STORAGE_KEY = 'sharmnexus-lang';
-
-    function applyLanguage(lang) {
-        const dict = translations[lang] || translations['en'];
-        
-        // Translate text content
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            if (dict[key] !== undefined) el.textContent = dict[key];
-        });
-
-        // Sync dropdown
-        const navSelect = document.getElementById('nav-language-select');
-        if (navSelect && navSelect.value !== lang) navSelect.value = lang;
-
-        // Save layout language
-        document.documentElement.lang = lang;
-        try { localStorage.setItem(LANG_STORAGE_KEY, lang); } catch (e) { /* ignore */ }
-    }
-
-    const navSelect = document.getElementById('nav-language-select');
-    if (navSelect) {
-        navSelect.addEventListener('change', () => applyLanguage(navSelect.value));
-    }
-
-    // Auto-load previously saved language (Syncs perfectly with Customer Dashboard)
-    let savedLang = 'en';
-    try { savedLang = localStorage.getItem(LANG_STORAGE_KEY) || 'en'; } catch (e) { }
-    if (translations[savedLang]) applyLanguage(savedLang);
-
-    // ========================================================================
-
-    // 3. Navigation Logic
-    const navItems = document.querySelectorAll('.nav-item[data-target]');
-    const views = document.querySelectorAll('.dashboard-view');
-
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
             e.preventDefault();
-            const targetId = item.getAttribute('data-target');
+            const targetId = link.getAttribute('data-target');
             
-            navItems.forEach(n => n.classList.remove('active'));
-            item.classList.add('active');
+            navLinks.forEach(n => n.classList.remove('active'));
+            link.classList.add('active');
             
             views.forEach(v => v.classList.remove('active'));
             document.getElementById(targetId).classList.add('active');
             
-            document.querySelector('.sidebar').classList.remove('open');
+            pageTitle.innerText = viewMeta[targetId].t;
+            pageSubtitle.innerText = viewMeta[targetId].s;
+
+            document.getElementById('coopSidebar').classList.remove('open');
         });
     });
 
-    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-        document.querySelector('.sidebar').classList.toggle('open');
+    document.getElementById('mobileMenuToggle').addEventListener('click', () => {
+        document.getElementById('coopSidebar').classList.toggle('open');
     });
 
-    // 4. Availability Toggle (Uses translation dictionary logic)
-    const availToggle = document.getElementById('avail-toggle');
-    const availText = document.getElementById('avail-status-text');
+    // --- Language Translation Logic ---
+    const translations = {
+        en: {}, hi: {}, bn: {}, mr: {}, ta: {}, te: {}
+        // Can be populated to match your other files if needed.
+    };
+
+    const LANG_STORAGE_KEY = 'sharmnexus-lang';
+    const navSelect = document.getElementById('nav-language-select');
     
-    availToggle.checked = authData.available !== false; 
-    updateAvailText(availToggle.checked);
-
-    availToggle.addEventListener('change', (e) => {
-        const isAvail = e.target.checked;
-        updateAvailText(isAvail);
-        
-        authData.available = isAvail;
-        localStorage.setItem('sharmnexus-auth', JSON.stringify(authData));
-        showToast(isAvail ? 'You are now Online' : 'You are now Offline');
-    });
-
-    function updateAvailText(isAvail) {
-        const currentLang = localStorage.getItem(LANG_STORAGE_KEY) || 'en';
-        const dict = translations[currentLang] || translations['en'];
-
-        if (isAvail) {
-            availText.innerText = dict['avail_online'];
-            availText.className = 'status-active';
-            availText.setAttribute('data-i18n', 'avail_online');
-        } else {
-            availText.innerText = dict['avail_offline'];
-            availText.className = 'status-inactive';
-            availText.setAttribute('data-i18n', 'avail_offline');
-        }
+    if (navSelect) {
+        let savedLang = localStorage.getItem(LANG_STORAGE_KEY) || 'en';
+        navSelect.value = savedLang;
+        navSelect.addEventListener('change', () => {
+            localStorage.setItem(LANG_STORAGE_KEY, navSelect.value);
+            // applyLanguage(navSelect.value); // Add translation mapper here if you expand the dict
+        });
     }
 
-    // 5. Mock Data Generation
-    let mockRequests = [
-        { id: 'REQ001', name: 'Sanjay Verma', service: 'Leaking Pipe Repair', date: 'Today, 2:00 PM', price: '₹ 450', dist: '1.2 km', desc: 'Kitchen sink pipe is leaking heavily.' },
-        { id: 'REQ002', name: 'Anjali Desai', service: 'Geyser Installation', date: 'Tomorrow, 10:00 AM', price: '₹ 800', dist: '3.5 km', desc: 'Need a new 15L geyser installed in the bathroom.' }
-    ];
-
-    let activeJobs = [
-        { id: 'JOB099', name: 'Karan Singh', service: 'Tap Replacement', date: 'Today, 5:00 PM', price: '₹ 300', address: 'Block 4, Sector 3, Jaipur' }
-    ];
-
-    let completedJobs = [];
-
-    // 6. Render Functions
-    const renderRequests = () => {
-        const containers = [document.getElementById('recent-requests-container'), document.getElementById('full-requests-container')];
-        const badge = document.getElementById('req-badge');
-        
-        badge.innerText = mockRequests.length;
-        if(mockRequests.length === 0) badge.style.display = 'none';
-
-        const html = mockRequests.length === 0 
-            ? `<p class="text-muted">No new requests at the moment.</p>` 
-            : mockRequests.map(req => `
-                <div class="req-card">
-                    <div class="req-head">
-                        <div><h3>${req.service}</h3><span>${req.name} • ⌖ ${req.dist}</span></div>
-                        <span class="badge">${req.date}</span>
-                    </div>
-                    <p class="text-muted" style="font-size:0.85rem">${req.desc}</p>
-                    <div class="req-price">${req.price}</div>
-                    <div class="req-actions">
-                        <button class="btn btn-outline" onclick="rejectReq('${req.id}')">Reject</button>
-                        <button class="btn btn-gold" onclick="acceptReq('${req.id}')">Accept Job</button>
-                    </div>
-                </div>
-            `).join('');
-
-        containers.forEach(c => { if(c) c.innerHTML = html; });
-    };
-
-    const renderActiveJobs = () => {
-        const container = document.getElementById('active-jobs-container');
-        if(!container) return;
-
-        container.innerHTML = activeJobs.length === 0 
-            ? `<p class="text-muted">You have no active jobs.</p>` 
-            : activeJobs.map(job => `
-                <div class="req-card">
-                    <div class="req-head">
-                        <div><h3>${job.service}</h3><span>${job.name}</span></div>
-                        <span class="badge" style="background:var(--mint); color:var(--green)">Active</span>
-                    </div>
-                    <p class="text-muted" style="font-size:0.85rem">📍 ${job.address}<br>📅 ${job.date}</p>
-                    <div class="req-price">${job.price}</div>
-                    <div class="req-actions">
-                        <button class="btn btn-outline" onclick="openChat('${job.name}')">Message</button>
-                        <button class="btn btn-dark" onclick="completeJob('${job.id}')">Complete</button>
-                    </div>
-                </div>
-            `).join('');
-    };
-
-    const renderCompletedJobs = () => {
-        const container = document.getElementById('completed-jobs-container');
-        if(!container) return;
-
-        container.innerHTML = completedJobs.length === 0 
-            ? `<p class="text-muted">No completed jobs yet.</p>` 
-            : completedJobs.map(job => `
-                <div class="req-card" style="opacity: 0.8">
-                    <div class="req-head">
-                        <div><h3>${job.service}</h3><span>${job.name}</span></div>
-                        <span class="badge">Completed</span>
-                    </div>
-                    <div class="req-price">${job.price}</div>
-                </div>
-            `).join('');
-    };
-
-    // 7. Action Handlers
-    window.acceptReq = (id) => {
-        const reqIndex = mockRequests.findIndex(r => r.id === id);
-        if(reqIndex > -1) {
-            const accepted = mockRequests.splice(reqIndex, 1)[0];
-            activeJobs.push({...accepted, address: 'Address provided after acceptance'});
-            renderRequests();
-            renderActiveJobs();
-            showToast('Job Accepted successfully!');
-        }
-    };
-
-    window.rejectReq = (id) => {
-        mockRequests = mockRequests.filter(r => r.id !== id);
-        renderRequests();
-        showToast('Job Request rejected.');
-    };
-
-    window.completeJob = (id) => {
-        if(confirm("Are you sure you want to mark this job as completed?")) {
-            const jobIndex = activeJobs.findIndex(j => j.id === id);
-            if(jobIndex > -1) {
-                const completed = activeJobs.splice(jobIndex, 1)[0];
-                completedJobs.push(completed);
-                
-                const statElem = document.getElementById('stat-jobs');
-                statElem.innerText = parseInt(statElem.innerText) + 1;
-
-                renderActiveJobs();
-                renderCompletedJobs();
-                showToast('Job Marked as Completed!');
-            }
-        }
-    };
-
-    // 8. Tabs Logic
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            btn.classList.add('active');
-            document.getElementById(btn.getAttribute('data-tab')).classList.add('active');
-        });
-    });
-
-    // 9. Profile Save
-    document.getElementById('profile-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        authData.name = document.getElementById('p-name').value;
-        authData.phone = document.getElementById('p-phone').value;
-        authData.skills = [document.getElementById('p-skill').value];
-        
-        localStorage.setItem('sharmnexus-auth', JSON.stringify(authData));
-        document.getElementById('welcome-name').innerText = `Welcome back, ${authData.name.split(' ')[0]}!`;
-        
-        showToast('Profile Updated Successfully!');
-    });
-
-    // 10. Chat Logic
-    const chatModal = document.getElementById('chat-modal');
-    window.openChat = (name) => {
-        document.getElementById('chat-customer-name').innerText = name;
-        chatModal.style.display = 'flex';
-    };
-    
-    document.getElementById('close-chat').addEventListener('click', () => chatModal.style.display = 'none');
-    
-    document.getElementById('btn-send-msg').addEventListener('click', () => {
-        const input = document.getElementById('chat-input');
-        if(input.value.trim()) {
-            const chatBody = document.getElementById('chat-messages');
-            chatBody.innerHTML += `<div class="msg sent">${input.value}</div>`;
-            input.value = '';
-            chatBody.scrollTop = chatBody.scrollHeight;
-        }
-    });
-
-    // 11. Logout Logic
-    document.getElementById('btnLogout').addEventListener('click', (e) => {
-        e.preventDefault();
-        if(confirm("Are you sure you want to log out?")) {
-            localStorage.removeItem('sharmnexus-auth');
-            window.location.href = 'premium-auth.html';
-        }
-    });
-
-    function showToast(msg) {
+    // --- Demo Action Global Helper ---
+    window.demoAction = (message) => {
         const toast = document.getElementById('toast');
-        toast.innerText = msg;
+        toast.innerText = message;
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 3000);
-    }
+    };
 
-    renderRequests();
-    renderActiveJobs();
-    renderCompletedJobs();
+    // --- MOCK DATA & RENDERING ---
+
+    // 1. Worker Roster & FairWork
+    const mockWorkers = [
+        { name: "Ravi Kumar", id: "WRK-1024", trade: "Electrician", verif: true, avail: "Available", jobs: 8, hrs: 62, earn: "₹18,400", fair: 92, st: "Balanced", stClass: "status-green" },
+        { name: "Aman Sharma", id: "WRK-1041", trade: "Painter", verif: true, avail: "Available", jobs: 3, hrs: 21, earn: "₹7,200", fair: 58, st: "Under-utilized", stClass: "status-gold" },
+        { name: "Suresh Patel", id: "WRK-1009", trade: "Plumber", verif: true, avail: "On Job", jobs: 11, hrs: 79, earn: "₹23,600", fair: 42, st: "Overloaded", stClass: "status-red" },
+        { name: "Neha Gupta", id: "WRK-1102", trade: "Cleaner", verif: true, avail: "Available", jobs: 7, hrs: 45, earn: "₹12,100", fair: 88, st: "Balanced", stClass: "status-green" }
+    ];
+
+    const workerHtml = mockWorkers.map(w => `
+        <tr>
+            <td><strong>${w.name}</strong></td><td>${w.id}</td><td>${w.trade}</td>
+            <td><span class="badge badge-verified">✓ Verified</span></td>
+            <td>${w.avail}</td><td>${w.jobs}</td><td>${w.earn}</td>
+            <td><strong class="${w.stClass}">${w.fair}</strong></td>
+        </tr>
+    `).join('');
+    document.getElementById('workerTableBody').innerHTML = workerHtml;
+
+    const fairWorkHtml = mockWorkers.map(w => `
+        <tr>
+            <td><strong>${w.name}</strong></td><td>${w.jobs}</td><td>${w.hrs}h</td><td>${w.earn}</td>
+            <td><strong>${w.fair}</strong></td>
+            <td><span class="${w.stClass}">${w.st}</span></td>
+        </tr>
+    `).join('');
+    document.getElementById('fairworkTableBody').innerHTML = fairWorkHtml;
+
+    // 2. Contracts
+    const mockContracts = [
+        { rwa: "Green Valley Residency", svc: "Painting & Maint.", wrk: 5, days: 14, budg: "₹85,000", st: "Active", stClass: "badge-verified" },
+        { rwa: "Shanti Nagar RWA", svc: "Electrical Update", wrk: 3, days: 30, budg: "₹62,000", st: "Pending", stClass: "badge-gold" },
+        { rwa: "Municipal Project", svc: "Deep Cleaning", wrk: 12, days: 10, budg: "₹1,25,000", st: "Completed", stClass: "badge-outline" }
+    ];
+    document.getElementById('contractsGrid').innerHTML = mockContracts.map(c => `
+        <div class="obj-card">
+            <div class="obj-head"><h3>${c.rwa}</h3><span class="badge ${c.stClass}">${c.st}</span></div>
+            <p class="text-muted">${c.svc}</p>
+            <div class="obj-stats"><div><strong>${c.wrk}</strong><br><small>Workers</small></div><div><strong>${c.days}</strong><br><small>Days</small></div><div><strong>${c.budg}</strong><br><small>Budget</small></div></div>
+            <div class="obj-actions"><button class="btn btn-outline btn-sm" style="color:var(--ink); border-color:var(--border)" onclick="demoAction('Viewing Contract')">View Details</button></div>
+        </div>
+    `).join('');
+
+    // 3. Squads
+    document.getElementById('squadsGrid').innerHTML = `
+        <div class="obj-card">
+            <div class="obj-head"><h3>Painting Squad Alpha</h3><span class="badge badge-verified">Active</span></div>
+            <p class="text-muted">Assigned: Green Valley Residency</p>
+            <div class="mt-3 mb-2"><small>Progress: 68%</small><div style="width:100%; height:6px; background:var(--cream-dark); border-radius:3px; margin-top:4px;"><div style="width:68%; height:100%; background:var(--green); border-radius:3px;"></div></div></div>
+            <p class="text-muted mt-2" style="font-size:0.8rem">Members: Aman, Suresh, Rahul + 2</p>
+            <div class="obj-actions mt-3"><button class="btn btn-dark w-100" onclick="demoAction('Managing Squad')">Manage Squad</button></div>
+        </div>
+    `;
+
+    // 4. Tools
+    const mockTools = [
+        { n: "Industrial Drill", id: "TB-001", st: "Available", stClass: "status-green" },
+        { n: "Paint Sprayer", id: "TB-002", st: "In Use", stClass: "status-gold" },
+        { n: "Welding Machine", id: "TB-003", st: "Available", stClass: "status-green" },
+        { n: "Pressure Washer", id: "TB-004", st: "Maintenance", stClass: "status-red" }
+    ];
+    document.getElementById('toolsGrid').innerHTML = mockTools.map(t => `
+        <div class="obj-card" style="align-items:center; text-align:center;">
+            <div style="font-size:3rem; margin-bottom:1rem;">🔧</div>
+            <h3>${t.n}</h3>
+            <p class="text-muted mb-2">ID: ${t.id}</p>
+            <span class="${t.stClass}">${t.st}</span>
+            <div class="obj-actions mt-3 w-100">
+                ${t.st === 'Available' ? `<button class="btn btn-gold w-100" onclick="demoAction('Tool Reserved')">Reserve</button>` : `<button class="btn btn-outline w-100" style="color:var(--ink); border-color:var(--border)" onclick="demoAction('Requesting Return')">Status</button>`}
+            </div>
+        </div>
+    `).join('');
+
+    // 5. Assembly
+    document.getElementById('assemblyGrid').innerHTML = `
+        <div class="obj-card">
+            <div class="obj-head"><h3>Purchase Industrial Sprayer</h3><span class="badge badge-verified">Approved</span></div>
+            <p class="text-muted mb-2">Proposal #24 • Cost: ₹45,000</p>
+            <div style="background:var(--cream); padding:1rem; border-radius:8px; display:flex; justify-content:space-between; text-align:center;">
+                <div><strong class="text-green">37</strong><br><small>YES</small></div>
+                <div><strong class="text-red">8</strong><br><small>NO</small></div>
+                <div><strong class="text-muted">3</strong><br><small>ABSTAIN</small></div>
+            </div>
+            <div class="obj-actions mt-3"><button class="btn btn-outline w-100" style="color:var(--ink); border-color:var(--border)" onclick="demoAction('Viewing Resolution')">View Details</button></div>
+        </div>
+    `;
+
+    // 6. Activity
+    document.getElementById('activityList').innerHTML = `
+        <li><div class="act-icon">⚡</div><div><strong>Ravi Kumar</strong> completed electrical contract. <br><small class="text-muted">2 hours ago</small></div></li>
+        <li><div class="act-icon">📄</div><div><strong>New member</strong> submitted verification documents. <br><small class="text-muted">5 hours ago</small></div></li>
+        <li><div class="act-icon">🏢</div><div><strong>Green Valley RWA</strong> created a community contract. <br><small class="text-muted">Yesterday</small></div></li>
+        <li><div class="act-icon">🧰</div><div><strong>Paint Sprayer</strong> returned to Tool Bank. <br><small class="text-muted">Yesterday</small></div></li>
+    `;
+
+    // --- CHART.JS INIT WITH STRICT SIZING FIX ---
+    const ctx = document.getElementById('coopRevenueChart');
+    if(ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'],
+                datasets: [{
+                    label: 'Cooperative Revenue (₹)',
+                    data: [320000, 380000, 350000, 410000, 390000, 420000],
+                    backgroundColor: '#e6aa3b',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // CRITICAL FOR HEIGHT FIX
+                scales: { 
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } }, 
+                    x: { grid: { display: false } } 
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
 });

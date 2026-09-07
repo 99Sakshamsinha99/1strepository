@@ -150,16 +150,134 @@
                 <button class="modal-close" aria-label="Close modal">✕</button>
                 
                 <!-- Service Details View -->
-                <div id="modal-view-details" class="modal-view">
-                    <div class="modal-header">
-                        <img id="modal-service-img" src="" alt="Service">
-                        <div class="modal-title-wrap">
-                            <h2 id="modal-service-title">Service Name</h2>
-                            <p id="modal-service-desc">Description</p>
+               <!-- Dynamic Service Booking Modal (Updated for SIH Flow) -->
+<div id="service-booking-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-container" role="dialog" aria-modal="true" style="max-width: 600px;">
+        <button class="modal-close" aria-label="Close modal">✕</button>
+        
+        <!-- STEP 1: Choice of Booking Type -->
+        <div id="modal-view-choice" class="modal-view active" style="text-align: center; padding: 1rem;">
+            <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Who would you like to hire?</h2>
+            <p class="text-muted mb-4">Choose how you want to book your <strong id="choice-service-name">Service</strong>.</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; text-align: left;">
+                <!-- Choice 1: Individual -->
+                <div class="card choice-card" onclick="document.getElementById('modal-view-choice').style.display='none'; document.getElementById('modal-view-individual').style.display='block';" style="cursor: pointer; border: 2px solid transparent; transition: 0.2s;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">👷</div>
+                    <h3>Individual Worker</h3>
+                    <p class="text-muted" style="font-size: 0.85rem; margin: 0.5rem 0;">Hire a specific verified worker directly.</p>
+                    <ul style="font-size: 0.75rem; color: var(--ink); list-style: none; padding-left: 0; line-height: 1.8;">
+                        <li>✓ Select specific worker</li>
+                        <li>✓ Identity & Trade Verified</li>
+                        <li>❌ No shared toolbank</li>
+                    </ul>
+                </div>
+                <!-- Choice 2: Cooperative -->
+                <div class="card choice-card" onclick="document.getElementById('modal-view-choice').style.display='none'; document.getElementById('modal-view-coop').style.display='block';" style="cursor: pointer; border: 2px solid var(--gold); background: var(--cream);">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🏢</div>
+                    <h3>Labour Cooperative</h3>
+                    <p class="text-muted" style="font-size: 0.85rem; margin: 0.5rem 0;">Hire through a verified Labour Cooperative Society.</p>
+                    <ul style="font-size: 0.75rem; color: var(--ink); list-style: none; padding-left: 0; line-height: 1.8;">
+                        <li>✓ FairWork allocation</li>
+                        <li>✓ Handles large community contracts</li>
+                        <li>✓ Supports worker welfare funds</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2A: Individual Worker Details -->
+        <div id="modal-view-individual" class="modal-view" style="display: none;">
+            <button class="text-link btn-back" onclick="document.getElementById('modal-view-individual').style.display='none'; document.getElementById('modal-view-choice').style.display='block';">← Back</button>
+            <div class="modal-worker-profile mt-2">
+                <h3>Available Professional</h3>
+                <div class="worker-card" style="margin-bottom: 1rem;">
+                    <div class="worker-avatar">RK</div>
+                    <div class="worker-info">
+                        <h4>Ravi Kumar</h4>
+                        <p class="worker-rating">★ 4.8 <span style="color:var(--muted); font-size:0.75rem;">(7 Years Exp)</span></p>
+                    </div>
+                    <div class="worker-price"><strong>₹499+</strong></div>
+                </div>
+                
+                <!-- COOPERATIVE IDENTITY BADGE -->
+                <div style="background: #f5f9f6; border: 1px solid #cce3d8; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                        <span class="badge" style="background: var(--mint); color: var(--green); font-size: 0.65rem;">✓ Identity Verified</span>
+                        <span class="badge" style="background: var(--mint); color: var(--green); font-size: 0.65rem;">✓ Trade Verified</span>
+                    </div>
+                    <strong style="color: #18ae79; font-size: 0.75rem; display: block; margin-bottom: 0.2rem; text-transform: uppercase;">Verified Cooperative Member</strong>
+                    <span style="font-size: 0.9rem; color: var(--ink); font-weight: bold;">Shakti Labour Cooperative Society</span>
+                </div>
+                
+                <button class="button button-dark w-100" onclick="document.getElementById('modal-view-individual').style.display='none'; document.getElementById('modal-view-form').style.display='block';">Book Ravi</button>
+            </div>
+        </div>
+
+        <!-- STEP 2B: Cooperative Details -->
+        <div id="modal-view-coop" class="modal-view" style="display: none;">
+            <button class="text-link btn-back" onclick="document.getElementById('modal-view-coop').style.display='none'; document.getElementById('modal-view-choice').style.display='block';">← Back</button>
+            <div class="modal-worker-profile mt-2">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <div style="width: 60px; height: 60px; background: var(--violet); color: white; border-radius: 12px; display: grid; place-items: center; font-size: 1.5rem; font-weight: bold; margin: 0 auto 1rem;">SL</div>
+                    <h2 style="font-size: 1.5rem; margin-bottom: 0.2rem;">Shakti Labour Cooperative Society</h2>
+                    <p style="color: var(--gold); font-weight: bold;">★ 4.7 <span style="color: var(--muted); font-weight: normal; font-size: 0.85rem;">(Verified Society)</span></p>
+                    <p style="font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem;">248 Worker Members • 15+ Trades</p>
+                </div>
+
+                <!-- TRANSPARENT PAYMENT DISTRIBUTION -->
+                <div style="border-top: 1px dashed var(--border); padding-top: 1.5rem; margin-bottom: 1.5rem;">
+                    <h4 style="font-size: 0.8rem; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; text-align: center;">Where Your Payment Goes</h4>
+                    <div style="display: flex; gap: 2px; height: 16px; border-radius: 8px; overflow: hidden; margin-bottom: 0.5rem;">
+                        <div style="width: 85%; background: var(--green); display: grid; place-items: center; color: white; font-size: 0.6rem; font-weight: bold;">85%</div>
+                        <div style="width: 10%; background: var(--ink); display: grid; place-items: center; color: white; font-size: 0.6rem; font-weight: bold;">10%</div>
+                        <div style="width: 5%; background: var(--terracotta);"></div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--ink); font-weight: bold;">
+                        <span>Worker Members</span>
+                        <span>Coop Society</span>
+                        <span>Welfare Fund</span>
+                    </div>
+                    <p style="font-size: 0.65rem; color: #aaa; margin-top: 0.8rem; text-align: center; text-transform: uppercase;">Demo / Configured Cooperative Distribution</p>
+                </div>
+                
+                <button class="button button-gold w-100" onclick="document.getElementById('modal-view-coop').style.display='none'; document.getElementById('modal-view-form').style.display='block';">Book Cooperative</button>
+            </div>
+        </div>
+
+        <!-- STEP 3: The standard booking form (Matches existing) -->
+        <div id="modal-view-form" class="modal-view" style="display: none;">
+            <h2>Book Service</h2>
+            <form id="service-booking-form" class="mt-2">
+                <div class="form-group"><label>Name</label><input type="text" required class="form-control"></div>
+                <div class="form-group"><label>Address</label><input type="text" required class="form-control"></div>
+                <button type="submit" class="button button-dark w-100 mt-4">Confirm Booking</button>
+            </form>
+        </div>
+    </div>
+</div>
+                        <!-- NEW COOP IDENTITY BADGE -->
+                        <div style="background: #f5f9f6; border: 1px solid #cce3d8; padding: 0.8rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                            <strong style="color: #18ae79; font-size: 0.75rem; display: block; margin-bottom: 0.2rem;">✓ VERIFIED COOPERATIVE MEMBER</strong>
+                            <span style="font-size: 0.85rem; color: var(--ink);">Shakti Labour Cooperative Society</span>
+                        </div>
+                        <!-- END COOP BADGE -->
+                        
+                        <div style="border-top: 1px dashed var(--border); padding-top: 1rem; margin-bottom: 1.5rem;">
+                            <h4 style="font-size: 0.8rem; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem;">Where Your Money Goes</h4>
+                            <div style="display: flex; gap: 2px; height: 12px; border-radius: 6px; overflow: hidden; margin-bottom: 0.5rem;">
+                                <div style="width: 85%; background: var(--green);" title="Worker Share (85%)"></div>
+                                <div style="width: 10%; background: var(--ink);" title="Cooperative Share (10%)"></div>
+                                <div style="width: 5%; background: var(--terracotta);" title="Welfare Fund (5%)"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--muted);">
+                                <span>Worker (85%)</span>
+                                <span>Coop (10%)</span>
+                                <span>Welfare (5%)</span>
+                            </div>
+                            <p style="font-size: 0.65rem; color: #aaa; margin-top: 0.4rem; text-align: center;">Example / Configured Distribution Policy</p>
                         </div>
                     </div>
-                    
-                    <div class="modal-worker-profile">
                         <h3>Available Professional</h3>
                         <div class="worker-card">
                             <div class="worker-avatar" id="modal-worker-avatar">RK</div>
@@ -225,7 +343,32 @@
                 </div>
             </div>
         </div>
-
+<!-- ShramNexus Cooperative Ecosystem Addition -->
+        <section class="section-pad" style="background: var(--ink); color: white;">
+            <div class="section-kicker" style="color: var(--gold);">MORE THAN A MARKETPLACE</div>
+            <div class="section-heading-row">
+                <h2 style="color: white; max-width: 600px;">ShramNexus is powered by <br><em style="color: var(--gold);">Labour Cooperatives.</em></h2>
+                <a class="button button-gold" href="cooperative-portal.html">Explore Cooperative Portal <span>↗</span></a>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 3rem;">
+                <div style="background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">🤝</div>
+                    <h3 style="color: white; font-family: var(--sans); margin-bottom: 0.5rem;">Worker Ownership</h3>
+                    <p style="color: #c8bacb; font-size: 0.85rem;">Workers are verified cooperative members who participate in democratic decisions and shared prosperity through dividends.</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">⚖️</div>
+                    <h3 style="color: white; font-family: var(--sans); margin-bottom: 0.5rem;">FairWork Engine</h3>
+                    <p style="color: #c8bacb; font-size: 0.85rem;">Work opportunities are distributed through transparent algorithmic allocation to ensure balanced earnings for all members.</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.05); padding: 2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="font-size: 2rem; margin-bottom: 1rem;">🏢</div>
+                    <h3 style="color: white; font-family: var(--sans); margin-bottom: 0.5rem;">Community Power</h3>
+                    <p style="color: #c8bacb; font-size: 0.85rem;">RWAs, societies, and institutions can hire verified, fully-equipped worker squads for large maintenance contracts.</p>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer class="footer">

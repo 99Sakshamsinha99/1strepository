@@ -46,7 +46,7 @@
 
             <!-- Right Panel -->
             <div class="auth-panel auth-right" id="authRight">
-                <a href="index.html" class="back-to-home">
+                <a href="sharmnexus-landing-updated.html" class="back-to-home">
                     <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M19 10H1m0 0l8-8m-8 8l8 8"/>
                     </svg>
@@ -60,9 +60,10 @@
                         <p class="form-subtitle">Choose your portal and sign in</p>
                     </div>
 
-                    <div class="role-selector" data-form="login">
+                    <div class="role-selector" data-form="...">
                         <button type="button" class="role-btn active" data-role="customer">Customer</button>
                         <button type="button" class="role-btn" data-role="worker">Worker</button>
+                        <button type="button" class="role-btn" data-role="cooperative">Cooperative</button>
                     </div>
 
                     <form class="auth-form" id="loginForm" novalidate>
@@ -113,10 +114,56 @@
                         <p class="form-subtitle">Create your network profile</p>
                     </div>
 
-                    <div class="role-selector" data-form="signup">
-                        <button type="button" class="role-btn active" data-role="customer">Customer</button>
-                        <button type="button" class="role-btn" data-role="worker">Worker</button>
-                    </div>
+                 <!-- Dynamic Cooperative Fields (Hidden by default) -->
+                        <div id="coopExtraFields" style="display: none;">
+                            <div class="divider"><span>Society Registration</span></div>
+                            
+                            <div class="form-group">
+                                <div class="input-wrapper">
+                                    <label for="coopName">Cooperative Society Name</label>
+                                    <input type="text" id="coopName" placeholder="e.g. Shakti Labour Cooperative">
+                                    <span class="error-message" id="coopNameError"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-row" style="gap: 10px; align-items: start;">
+                                <div class="form-group" style="flex: 1;">
+                                    <div class="input-wrapper">
+                                        <label for="coopRegNum">Govt. Reg. Number</label>
+                                        <input type="text" id="coopRegNum" placeholder="Registration ID">
+                                        <span class="error-message" id="coopRegNumError"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <div class="input-wrapper">
+                                        <label for="coopPhone">Official Phone</label>
+                                        <input type="tel" id="coopPhone" placeholder="Society Contact">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row" style="gap: 10px; align-items: start;">
+                                <div class="form-group" style="flex: 1;">
+                                    <div class="input-wrapper">
+                                        <label for="coopState">State</label>
+                                        <input type="text" id="coopState" placeholder="e.g. Rajasthan">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <div class="input-wrapper">
+                                        <label for="coopDistrict">District</label>
+                                        <input type="text" id="coopDistrict" placeholder="e.g. Jaipur">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="input-wrapper">
+                                    <label for="coopMembers">Current Number of Members</label>
+                                    <input type="number" id="coopMembers" placeholder="e.g. 150">
+                                </div>
+                            </div>
+                        </div>
 
                     <!-- Scrollable form area for longer worker registration -->
                     <div style="max-height: 45vh; overflow-y: auto; padding-right: 10px; margin-bottom: 10px;">
